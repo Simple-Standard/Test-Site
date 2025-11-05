@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SIMPLE STANDARD SCHOOL, JOS — SS3 Online Examination</title>
+
+<!-- jsPDF for PDF generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+:root{--accent:#0b63d6;--accent2:#0ea5a4}
+body{margin:0;font-family:Times new Roman, Helvetica, sans-serif;background:linear-gradient(135deg,#eef6ff,#f7fff5);color:#0b1220}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:white;box-shadow:0 2px 8px rgba(10,20,40,.06)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:60px;
+  height:60px;
+  border-radius:8px;
+  object-fit:cover;
+  background:none;
+}
+nav{display:flex;gap:10px}
+nav button{background:transparent;border:1px solid var(--accent);padding:8px 12px;border-radius:8px;color:var(--accent);cursor:pointer}
+.container{max-width:1100px;margin:28px auto;padding:20px}
+.card{background:white;padding:20px;border-radius:12px;box-shadow:0 8px 30px rgba(12,24,60,.06)}
+.center{display:grid;place-items:center}
+.big{font-size:34px;font-weight:800}
+.marquee{overflow:hidden;margin-top:10px}
+.marquee .text{display:inline-block;white-space:nowrap;animation:marquee 16s linear infinite}
+@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
+.btn{background:linear-gradient(90deg,var(--accent),var(--accent2));color:white;border:0;padding:10px 16px;border-radius:10px;cursor:pointer}
+.btn.secondary{background:white;color:var(--accent);border:1px solid #e6eefc}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+.select,input,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eefc}
+.qnav{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.qbox{padding:8px;border-radius:6px;border:1px solid #eef5ff;text-align:center;cursor:pointer}
+.qbox.answered{background:linear-gradient(90deg,var(--accent2),var(--accent));color:white}
+.questions .q{margin-bottom:14px}
+.small{font-size:13px;color:#334155}
+.footer{padding:14px;text-align:center;color:#475569}
+.hidden{display:none}
+@media(max-width:920px){.grid{grid-template-columns:1fr}}
+
+/* background slideshow for welcome page */
+#page1 { position: relative; overflow: hidden; }
+#page1::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  animation: fadeSlide 25s infinite;
+  z-index: 0;
+}
+@keyframes fadeSlide {
+  0%,20% { background-image: url("backimage1.png"); opacity:.7;}
+  20.1%,40% { background-image: url("backimage2.png"); opacity:.7;}
+  40.1%,60% { background-image: url("backimage3.png"); opacity:1;}
+  60.1%,80% { background-image: url("backimage4.png"); opacity:.7;}
+  80.1%,100% { background-image: url("backimage5.png"); opacity:.7;}
+}
+#page1 *{ position: relative; z-index: 1; }
+
+/* welcome text */
+.big {
+  font-family: "Cooper Black", "Times New Roman", serif;
+  font-size: 70px;
+  font-weight: 900;
+  color: navy;
+  -webkit-text-stroke: 2px white;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 4px 4px 8px rgba(0,0,0,.4), 0 0 15px rgba(255,255,255,.5);
+}
+.school-name {
+  font-size: 40px;
+  font-weight: 900;
+  color: #0ea5a4;
+  -webkit-text-stroke: 1px white;
+  text-shadow: 0 0 6px rgba(255,255,255,0.4);
+}
+
+/* admin forms */
+.admin-form { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+.admin-form > * { flex: 1 1 auto; }
+.admin-col { display:grid; gap:8px; grid-template-columns:1fr 1fr; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img id="siteLogo" src="./logo.png" alt="School Logo" class="logo">
+    <div>
+      <div id="headerSchool" style="font-weight:700">SIMPLE STANDARD SCHOOL, JOS</div>
+      <div class="small">SS3 Online Examination Portal</div>
+    </div>
+  </div>
+  <nav>
+    <button id="homeBtn">Home</button>
+    <button id="adminBtn">Admin</button>
+  </nav>
+</header>
+
+<div class="container">
+  <!-- PAGE 1 -->
+  <section id="page1" class="card center">
+    <div class="big">WELCOME TO</div>
+    <div style="margin-top:18px">
+      <img src="./logo.png" alt="School Logo" style="width:150px;height:150px;object-fit:contain;border-radius:12px;">
+    </div>
+    <div class="school-name" style="margin-top:8px;">SIMPLE STANDARD SCHOOL, JOS</div>
+
+    <div class="marquee"><div class="text">Simple Standard School SS 3 Online Examination Site, 2025/2026 — Good luck to all candidates!</div></div>
+
+    <div style="margin-top:16px"><button id="toStudentSelect" class="btn">Proceed to Examination</button></div>
+    <div class="small" style="margin-top:18px;opacity:.9">BAITUSSALAM</div>
+  </section>
+
+  <!-- PAGE 2: Student selection -->
+  <section id="page2" class="card hidden">
+    <h3>Select Student</h3>
+    <p class="small">Choose your name from the list</p>
+    <select id="studentSelect" class="select"></select>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px;gap:8px">
+      <button id="toHomeFromStudents" class="btn secondary">Home</button>
+      <button id="toSubjectPage" class="btn">Proceed</button>
+    </div>
+  </section>
+
+  <!-- PAGE 3: Subject selection -->
+  <section id="page3" class="card hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:12px">
+        <img src="./logo.png" class="logo" alt="">
+        <div>
+          <div style="font-weight:700">SIMPLE STANDARD SCHOOL, JOS</div>
+          <div class="small">Selected Student: <span id="selectedStudentName"></span> — Exam No: <span id="selectedExamNo"></span></div>
+        </div>
+      </div>
+    </div>
+    <hr>
+    <h4>Select Subject</h4>
+    <select id="subjectSelect" class="select"></select>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+      <div class="small">Stream: <span id="studentStream"></span></div>
+      <div>
+        <button id="backToStudents" class="btn secondary">Back</button>
+        <button id="beginExam" class="btn" style="margin-left:8px">Begin Exam</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PAGE 4: Exam environment -->
+  <section id="page4" class="card hidden">
+    <div class="grid">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-weight:700" id="examSubjectTitle">Subject</div>
+            <div class="small">Student: <span id="examStudentName"></span> — Exam No: <span id="examStudentNo"></span></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:800;color:#0b63d6" id="timerDisplay">30:00</div>
+            <div class="small">Time remaining</div>
+          </div>
+        </div>
+
+        <hr>
+        <div id="questionArea" class="questions"></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <div>
+            <button id="prevBlock" class="btn secondary">Previous</button>
+            <button id="nextBlock" class="btn" style="margin-left:8px">Next</button>
+          </div>
+          <div>
+            <button id="submitExam" class="btn" style="background:#ef4444">Submit</button>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card" style="padding:12px">
+          <h4>Question Navigator</h4>
+          <div class="qnav" id="qnav"></div>
+          <div class="small" style="margin-top:12px">Answered boxes are highlighted. Click a number to jump to that question block.</div>
+          <hr style="margin-top:12px"/>
+          <div><strong>Instructions</strong>
+            <ul class="small">
+              <li>30 questions per subject (randomized from question bank).</li>
+              <li>5 questions shown at a time.</li>
+              <li>Total time: 30 minutes. Auto-submit when time runs out.</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ADMIN PAGE -->
+  <section id="admin" class="card hidden">
+    <h3>Admin Access</h3>
+    <div style="max-width:800px;margin:0 auto;text-align:left">
+      <label class="small">Username</label>
+      <input id="adminUser" class="select" placeholder="username">
+      <label class="small" style="margin-top:8px">Password</label>
+      <input id="adminPass" type="password" class="select" placeholder="password">
+      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+        <button id="adminLogin" class="btn">Login</button>
+        <button id="adminBack" class="btn secondary">Back</button>
+      </div>
+
+      <div id="adminPanel" class="hidden" style="margin-top:14px">
+
+        <h4>Admin Panel</h4>
+
+        <!-- Student management -->
+        <div style="margin-bottom:12px">
+          <h5>Add / Manage Students</h5>
+          <div class="admin-form">
+            <input id="newStudentName" placeholder="Student name">
+            <input id="newStudentExamNo" placeholder="Exam number">
+            <select id="newStudentStream" class="select">
+              <option value="Science">Science</option>
+              <option value="Social">Social</option>
+            </select>
+            <button id="addStudentBtn" class="btn">Add Student</button>
+          </div>
+        </div>
+
+        <!-- Question management -->
+        <div style="margin-bottom:12px">
+          <h5>Add Question</h5>
+          <div class="admin-col" style="margin-bottom:8px">
+            <select id="addQSubject" class="select">
+              <option>English</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>Biology</option><option>Economics</option><option>Government</option><option>Geography</option><option>Computer Studies</option>
+            </select>
+            <select id="addQStream" class="select">
+              <option value="Both">Both</option>
+              <option value="Science">Science</option>
+              <option value="Social">Social</option>
+            </select>
+          </div>
+          <input id="newQuestionText" placeholder="Question text">
+          <div class="admin-col" style="margin-top:8px">
+            <input id="optA" placeholder="Option A">
+            <input id="optB" placeholder="Option B">
+            <input id="optC" placeholder="Option C">
+            <input id="optD" placeholder="Option D">
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+            <label class="small">Correct option:</label>
+            <select id="correctOption" class="select" style="width:120px">
+              <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
+            </select>
+            <button id="addQuestionBtn" class="btn">Add Question</button>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+          <select id="adminStudentSelect" class="select"></select>
+          <button id="downloadResultPdf" class="btn">Download PDF</button>
+          <button id="exportAllJson" class="btn secondary">Export All Results (JSON)</button>
+        </div>
+
+        <div id="resultsTable"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer class="footer">SIMPLE STANDARD SCHOOL, JOS — SS3 Online Exam Portal • 2025/2026</footer>
+
+<!-- Firebase + app logic -->
+<script type="module">
+/* ==================== IMPORTANT: Paste your Firebase config below ==================== */
+const FIREBASE_CONFIG = {
+   apiKey: "AIzaSyAZ13_SN8a-37U9FwdyvogkT3ojzS5CB6M",
+   authDomain: "sss-exam-portal.firebaseapp.com",
+   projectId: "sss-exam-portal",
+   storageBucket: "sss-exam-portal.firebasestorage.app",
+   messagingSenderId: "938709811259",
+   appId: "1:938709811259:web:329b16d9391b4cd28adc1e"
+ };
+/* ===================================================================================== */
+
+const logoPath = './logo.png';
+
+/* --------- Firebase imports --------- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+import { getFirestore, collection, addDoc, doc, getDocs, query, where, setDoc } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
+
+// init firebase if config provided
+let db = null;
+if (FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey) {
+  const app = initializeApp(FIREBASE_CONFIG);
+  db = getFirestore(app);
+  console.log('Firebase initialized');
+} else {
+  console.warn('No Firebase config provided — running in local fallback mode only.');
+}
+
+/* -------------------- Initial (fallback) data -------------------- */
+const ADMIN_CRED = {user:'baitussalam', pass:'756254'};
+
+let STUDENTS = [
+  'Ahmed Abdullahi','Aisha Bello','Amaka Okonkwo','Bala Musa','Chinedu Nnaji','Chukwuemeka Obi',
+  'Daniel Eze','David John','Ebere Okafor','Fatima Sani','Favour Okoye','Ganiyu Adedeji',
+  'Hauwa Ibrahim','Ifeoma Nwosu','Ibrahim Yusuf','Kemiso Adeola','Kemi Afolabi','Kehinde Balogun',
+  'Mariam Usman','Michael Azubuike','Musa Ahmed','Ngozi Aniekwe','Nkechi Okeke','Olufemi Akin',
+  'Oluwaseun Adeyemi','Patrick Ekpo','Rasheedat Lawal','Samuel Uche','Umar Sadiq','Zainab Magaji'
+].map((name,i)=>({name, examNo:`SS3/2025/${1001+i}`, stream: i < 15 ? 'Science' : 'Social'}));
+
+const SCIENCE_SUBJECTS = ['English','Mathematics','Physics','Chemistry','Biology','Further Mathematics','Agricultural Science','Geography','Computer Studies'];
+const SOCIAL_SUBJECTS  = ['English','Mathematics','Economics','Government','Commerce','CRS','Geography','Accounting','Literature'];
+
+/* Local (in-memory) question DB used if Firebase not configured */
+let QUESTIONS_DB = {};
+[...SCIENCE_SUBJECTS, ...SOCIAL_SUBJECTS].forEach(s=>{
+  QUESTIONS_DB[s] = [];
+});
+
+/* Utility */
+function el(id){ return document.getElementById(id); }
+function show(page){ [el('page1'),el('page2'),el('page3'),el('page4'),el('admin')].forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); window.scrollTo(0,0); }
+
+/* --------- Firestore helpers --------- */
+async function saveStudentToFirestore(student){
+  if(!db) return false;
+  const col = collection(db, 'students');
+  // use examNo as doc id
+  await setDoc(doc(db, 'students', student.examNo), student);
+  return true;
+}
+async function fetchAllStudentsFromFirestore(){
+  if(!db) return null;
+  const snap = await getDocs(collection(db, 'students'));
+  const arr = [];
+  snap.forEach(d => arr.push(d.data()));
+  return arr;
+}
+async function saveQuestionToFirestore(question){
+  if(!db) return false;
+  await addDoc(collection(db, 'questions'), question);
+  return true;
+}
+async function fetchAllQuestionsFromFirestore(){
+  if(!db) return null;
+  const snap = await getDocs(collection(db, 'questions'));
+  const arr = [];
+  snap.forEach(d => arr.push(Object.assign({id:d.id}, d.data())));
+  return arr;
+}
+async function saveResultToFirestore(result){
+  if(!db) return false;
+  await addDoc(collection(db, 'results'), result);
+  return true;
+}
+async function fetchResultsForExamNo(examNo){
+  if(!db) return null;
+  const q = query(collection(db, 'results'), where('examNo','==',examNo));
+  const snap = await getDocs(q);
+  const arr = [];
+  snap.forEach(d => arr.push(d.data()));
+  return arr;
+}
+async function fetchAllResults(){
+  if(!db) return null;
+  const snap = await getDocs(collection(db,'results'));
+  const arr = [];
+  snap.forEach(d=>arr.push(d.data()));
+  return arr;
+}
+
+/* --------- UI wiring & fallback data loading --------- */
+const page1 = el('page1'), page2 = el('page2'), page3 = el('page3'), page4 = el('page4'), adminPage = el('admin');
+el('homeBtn').addEventListener('click', ()=> show(page1));
+el('adminBtn').addEventListener('click', ()=>{
+  if(sessionStorage.getItem('exam_in_progress')){
+    if(!confirm('Admin area will abandon current exam. Continue?')) return;
+    endExamSession();
+  }
+  show(adminPage);
+});
+el('toStudentSelect').addEventListener('click', ()=>{ populateStudentSelect(); show(page2); });
+
+function populateStudentSelect(){
+  const sel = el('studentSelect'); sel.innerHTML='';
+  const placeholder = document.createElement('option'); placeholder.value=''; placeholder.textContent='-- Select Student --'; sel.appendChild(placeholder);
+  STUDENTS.forEach(s=>{ const o=document.createElement('option'); o.value=s.examNo; o.textContent=`${s.name} — ${s.examNo} (${s.stream})`; sel.appendChild(o); });
+}
+
+el('toHomeFromStudents').addEventListener('click', ()=> show(page1));
+el('toSubjectPage').addEventListener('click', ()=>{
+  const sel = el('studentSelect'); if(!sel.value){ alert('Select a student'); return; }
+  const stu = STUDENTS.find(x=>x.examNo===sel.value);
+  sessionStorage.setItem('currentStudent', JSON.stringify(stu));
+  el('selectedStudentName').textContent = stu.name;
+  el('selectedExamNo').textContent = stu.examNo;
+  el('studentStream').textContent = stu.stream;
+  const subjSel = el('subjectSelect'); subjSel.innerHTML=''; const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent='-- Select Subject --'; subjSel.appendChild(placeholder);
+  const list = (stu.stream === 'Science') ? SCIENCE_SUBJECTS : SOCIAL_SUBJECTS;
+  list.forEach(s=>{const o=document.createElement('option'); o.value=s; o.textContent=s; subjSel.appendChild(o);});
+  show(page3);
+});
+
+el('backToStudents').addEventListener('click', ()=> show(page2));
+
+/* Exam begin */
+el('beginExam').addEventListener('click', async ()=>{
+  const subj = el('subjectSelect').value; if(!subj){ alert('Select subject'); return; }
+  const stu = JSON.parse(sessionStorage.getItem('currentStudent'));
+  // load question pool from Firestore if available else fallback
+  let pool = QUESTIONS_DB[subj] || [];
+  if(db){
+    const all = await fetchAllQuestionsFromFirestore();
+    if(all && all.length){
+      pool = all.filter(q => (q.subject === subj) && (q.stream==='Both' || q.stream === stu.stream));
+    }
+  }
+  if(pool.length === 0) { if(!confirm('No questions uploaded for this subject. Continue?')) return; }
+  const selected = shuffleArray(pool).slice(0, Math.min(30, pool.length));
+  const examState = {
+    student: stu,
+    subject: subj,
+    examNo: stu.examNo,
+    questions: selected.map(q=>({
+      q: q.q || q.question || ('No question'),
+      options: q.options || q.optionsArr || q.options || ['A','B','C','D'],
+      answer: typeof q.answer !== 'undefined' ? q.answer : null
+    })),
+    answers: Array(selected.length).fill(null),
+    started: false,
+    startTimestamp: null,
+    durationSeconds: 30*60
+  };
+  sessionStorage.setItem('examState', JSON.stringify(examState));
+  startExam();
+  show(page4);
+});
+
+/* exam UI */
+let examTimer = null, currentBlockStart = 0;
+function startExam(){ const state = JSON.parse(sessionStorage.getItem('examState')); if(!state) return; state.started = true; state.startTimestamp = Date.now(); sessionStorage.setItem('examState', JSON.stringify(state)); sessionStorage.setItem('exam_in_progress', '1');
+  el('examStudentName').textContent = state.student.name; el('examStudentNo').textContent = state.examNo; el('examSubjectTitle').textContent = state.subject;
+  renderNavigator(); renderBlock(0); startTimer(); }
+function endExamSession(){ sessionStorage.removeItem('examState'); sessionStorage.removeItem('currentStudent'); sessionStorage.removeItem('currentSubject'); sessionStorage.removeItem('exam_in_progress'); if(examTimer) clearInterval(examTimer); }
+function renderNavigator(){ const state = JSON.parse(sessionStorage.getItem('examState')); const nav = el('qnav'); nav.innerHTML=''; if(!state) return; for(let i=0;i<state.questions.length;i++){ const b=document.createElement('div'); b.className='qbox'+(state.answers[i]!==null? ' answered':''); b.textContent = i+1; b.dataset.index = i; b.addEventListener('click', ()=>{ renderBlock(Math.floor(i/5)*5); }); nav.appendChild(b); } }
+function renderBlock(start){ currentBlockStart = start; const state = JSON.parse(sessionStorage.getItem('examState')); const area = el('questionArea'); area.innerHTML=''; if(!state) return; const per=5; for(let i=0;i<per;i++){ const qi = start + i; if(qi >= state.questions.length) break; const q = state.questions[qi]; const div = document.createElement('div'); div.className='q'; const qnum = document.createElement('div'); qnum.style.fontWeight='700'; qnum.textContent = `Question ${qi+1}`; const qtext = document.createElement('div'); qtext.textContent = q ? q.q : 'No question uploaded'; div.appendChild(qnum); div.appendChild(qtext);
+    const opts = document.createElement('div'); opts.style.marginTop='8px'; if(q && q.options){ q.options.forEach((op, idx)=>{ const label = document.createElement('label'); label.style.display='block'; label.style.padding='8px'; label.style.border='1px solid #eef5ff'; label.style.borderRadius='8px'; label.style.marginBottom='6px'; const input = document.createElement('input'); input.type='radio'; input.name = `q_${qi}`; input.checked = (state.answers[qi] === idx); input.addEventListener('change', ()=>{ state.answers[qi] = idx; sessionStorage.setItem('examState', JSON.stringify(state)); renderNavigator(); }); label.appendChild(input); label.appendChild(document.createTextNode(' '+op)); opts.appendChild(label); }); } else { opts.innerHTML = '<div class=\"small\">No options available.</div>'; }
+    div.appendChild(opts); area.appendChild(div);
+  }
+  document.querySelectorAll('#qnav .qbox').forEach((b, idx)=>{ b.classList.toggle('current', idx>=start && idx<start+per); });
+}
+el('nextBlock').addEventListener('click', ()=>{ const state = JSON.parse(sessionStorage.getItem('examState')); const per=5; if(currentBlockStart+per < state.questions.length) renderBlock(currentBlockStart+per); });
+el('prevBlock').addEventListener('click', ()=>{ const per=5; if(currentBlockStart-per >= 0) renderBlock(currentBlockStart-per); });
+function startTimer(){ if(examTimer) clearInterval(examTimer); examTimer = setInterval(()=>{ const state = JSON.parse(sessionStorage.getItem('examState')); if(!state){ clearInterval(examTimer); return; } const elapsed = Math.floor((Date.now() - state.startTimestamp)/1000); const remaining = Math.max(0, state.durationSeconds - elapsed); const mm = String(Math.floor(remaining/60)).padStart(2,'0'); const ss = String(remaining%60).padStart(2,'0'); el('timerDisplay').textContent = `${mm}:${ss}`; if(remaining <= 0){ clearInterval(examTimer); alert('Time is up. Your exam will be submitted automatically.'); submitExam(true); } }, 500); }
+
+/* Submit: now saves to Firestore results collection (or fallback local if no Firebase) */
+el('submitExam').addEventListener('click', ()=>{ if(!confirm('Submit exam now?')) return; submitExam(false); });
+async function submitExam(isAuto){
+  const state = JSON.parse(sessionStorage.getItem('examState')); if(!state) return;
+  let correct = 0; for(let i=0;i<state.questions.length;i++){ const q = state.questions[i]; if(state.answers[i] !== null && typeof q.answer !== 'undefined' && state.answers[i] === q.answer) correct++; }
+  const total = state.questions.length; const score = Math.round((correct/total)*100);
+
+  // build result object
+  const result = {
+    studentName: state.student.name,
+    examNo: state.examNo,
+    subject: state.subject,
+    score,
+    correct,
+    total,
+    timestamp: new Date().toISOString(),
+    stream: state.student.stream
+  };
+
+  try {
+    if(db){
+      await saveResultToFirestore(result);
+    } else {
+      // fallback localStorage results
+      const results = JSON.parse(localStorage.getItem('sss_results_v1') || '[]');
+      results.push(result);
+      localStorage.setItem('sss_results_v1', JSON.stringify(results));
+    }
+    endExamSession();
+    alert('Exam submitted. Your score: ' + score + '%');
+    populateStudentSelect(); show(page2);
+  } catch (e){
+    console.error(e);
+    alert('Error saving result: ' + e.message);
+  }
+}
+
+/* ---- Admin logic ---- */
+el('adminLogin').addEventListener('click', async ()=>{
+  const u = el('adminUser').value.trim(); const p = el('adminPass').value.trim();
+  if(u === ADMIN_CRED.user && p === ADMIN_CRED.pass){
+    el('adminPanel').classList.remove('hidden'); await populateAdmin();
+  } else alert('Invalid credentials');
+});
+el('adminBack').addEventListener('click', ()=> show(page1));
+
+/* Admin: add student */
+el('addStudentBtn').addEventListener('click', async ()=>{
+  const name = el('newStudentName').value.trim(); const examNo = el('newStudentExamNo').value.trim(); const stream = el('newStudentStream').value;
+  if(!name || !examNo) return alert('Provide name and exam number');
+  const s = { name, examNo, stream };
+  STUDENTS.push(s);
+  if(db){
+    try { await saveStudentToFirestore(s); } catch(e){ console.error(e); alert('Error saving student to Firestore'); }
+  }
+  el('newStudentName').value=''; el('newStudentExamNo').value='';
+  await populateAdmin(); populateStudentSelect();
+  alert('Student added');
+});
+
+/* Admin: add question */
+el('addQuestionBtn').addEventListener('click', async ()=>{
+  const subject = el('addQSubject').value;
+  const stream = el('addQStream').value;
+  const qtext = el('newQuestionText').value.trim();
+  const options = [el('optA').value, el('optB').value, el('optC').value, el('optD').value];
+  const answer = parseInt(el('correctOption').value, 10);
+  if(!qtext || options.some(o=>!o)) return alert('Provide question and all options');
+  const qObj = { subject, stream, q: qtext, options, answer };
+  if(db){
+    try { await saveQuestionToFirestore(qObj); } catch(e){ console.error(e); alert('Error saving question to Firestore'); }
+  } else {
+    if(!QUESTIONS_DB[subject]) QUESTIONS_DB[subject]=[];
+    QUESTIONS_DB[subject].push(qObj);
+  }
+  el('newQuestionText').value=''; el('optA').value=''; el('optB').value=''; el('optC').value=''; el('optD').value='';
+  alert('Question added');
+});
+
+/* Admin: populate student dropdowns and results table */
+async function populateAdmin(){
+  // load students from firestore if available
+  if(db){
+    try {
+      const studentsFromDb = await fetchAllStudentsFromFirestore();
+      if(studentsFromDb && studentsFromDb.length) STUDENTS = studentsFromDb;
+    } catch(e){ console.error('Unable to fetch students from Firestore', e); }
+  }
+  const sel = el('adminStudentSelect'); sel.innerHTML=''; const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent='-- Select Student --'; sel.appendChild(placeholder);
+  STUDENTS.forEach(s=>{ const o=document.createElement('option'); o.value=s.examNo; o.textContent = `${s.name} — ${s.examNo}`; sel.appendChild(o); });
+  renderResultsTable();
+}
+
+async function renderResultsTable(){
+  const container = el('resultsTable');
+  let results = [];
+  if(db){
+    try { results = await fetchAllResults(); } catch(e){ console.error(e); }
+  } else {
+    results = JSON.parse(localStorage.getItem('sss_results_v1') || '[]');
+  }
+  if(!results || results.length === 0){ container.innerHTML = '<div class="small">No results yet.</div>'; return; }
+  const byStudent = {};
+  results.forEach(r=>{ if(!byStudent[r.examNo]) byStudent[r.examNo] = {info:{name:r.studentName, examNo:r.examNo, stream:r.stream}, subjects:[]}; byStudent[r.examNo].subjects.push(r); });
+  let html = '<table style="width:100%;border-collapse:collapse"><thead><tr><th style="text-align:left">Student</th><th>Stream</th><th>Subjects</th><th>Avg (%)</th></tr></thead><tbody>';
+  Object.values(byStudent).forEach(s=>{ const avg = (s.subjects.reduce((a,b)=>a+b.score,0)/s.subjects.length).toFixed(2); html += `<tr><td>${s.info.name}<div class="small">${s.info.examNo}</div></td><td>${s.info.stream}</td><td>${s.subjects.length}</td><td>${avg}</td></tr>`; });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+/* download single student pdf */
+el('downloadResultPdf').addEventListener('click', async ()=>{
+  const examNo = el('adminStudentSelect').value; if(!examNo) return alert('Select a student first');
+  const stu = STUDENTS.find(s=>s.examNo===examNo); if(!stu) return alert('Student not found');
+
+  // fetch results for this student
+  let results = [];
+  if(db){
+    try { results = await fetchResultsForExamNo(examNo); } catch(e){ console.error(e); }
+  } else results = JSON.parse(localStorage.getItem('sss_results_v1')||'[]').filter(r=>r.examNo===examNo);
+  if(!results || results.length===0) return alert('No results for this student');
+
+  const avg = (results.reduce((a,b)=>a+b.score,0)/results.length).toFixed(2);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p','mm','a4');
+  const logo = new Image();
+  logo.src = logoPath;
+  // wait for logo to load then generate
+  logo.onload = function(){
+    doc.addImage(logo, "PNG", 14, 10, 24, 24);
+    doc.setFont("times","bold");
+    doc.setTextColor(0,0,128);
+    doc.setFontSize(16);
+    doc.text("SIMPLE STANDARD SCHOOL, JOS", 105, 20, {align:"center"});
+    doc.setFontSize(12);
+    doc.setTextColor(0,0,0);
+    doc.text("SS3 Examination Report", 105, 28, {align:"center"});
+    doc.line(14, 32, 196, 32);
+
+    // student info
+    doc.setFontSize(11);
+    doc.text(`Student Name: ${stu.name}`, 14, 40);
+    doc.text(`Exam Number: ${stu.examNo}`, 14, 48);
+    doc.text(`Field/Stream: ${stu.stream}`, 14, 56);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 64);
+
+    // table
+    let y = 76;
+    doc.setFont("times","bold");
+    doc.text("Subjects and Scores", 14, y);
+    y+=6;
+    doc.setFont("times","normal");
+    results.forEach(r=>{
+      doc.text(`${r.subject}: ${r.score}% (${r.correct}/${r.total})`, 14, y);
+      y+=8;
+      if(y>270){ doc.addPage(); y=20; }
+    });
+
+    y+=8;
+    doc.setFont("times","bold");
+    doc.text(`Average: ${avg}%`, 14, y);
+    y+=8;
+    const grade = avg >= 70 ? "A (Excellent)" : avg >= 60 ? "B" : avg >=50 ? "C" : avg >=40 ? "D" : avg>=35? "E":"F";
+    doc.text(`Grade: ${grade}`, 14, y);
+    y+=8;
+    const remark = avg >= 70 ? "Excellent" : avg >=60 ? "Very good" : avg>=50 ? "Good" : avg>=40 ? "Pass" : "Needs improvement";
+    doc.text(`Remark: ${remark}`, 14, y);
+
+    doc.save(`${stu.name.replace(/\s+/g,'_')}_result.pdf`);
+  };
+  logo.onerror = function(){ alert('Logo could not be loaded. Check logo.png exists'); };
+});
+
+/* export all results as JSON */
+el('exportAllJson').addEventListener('click', async ()=>{
+  let data = [];
+  if(db){ data = await fetchAllResults(); } else data = JSON.parse(localStorage.getItem('sss_results_v1') || '[]');
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'sss_all_results.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+});
+
+/* Utilities */
+function shuffleArray(a){ const arr = a.slice(); for(let i=arr.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+window.addEventListener('beforeunload', (e)=>{ if(sessionStorage.getItem('exam_in_progress')){ e.preventDefault(); e.returnValue = ''; } });
+
+/* Initialization: load students/questions from Firestore if available */
+(async function init(){
+  if(db){
+    try {
+      const studentsFromDb = await fetchAllStudentsFromFirestore();
+      if(studentsFromDb && studentsFromDb.length) STUDENTS = studentsFromDb;
+      const questionsFromDb = await fetchAllQuestionsFromFirestore();
+      if(questionsFromDb && questionsFromDb.length){
+        QUESTIONS_DB = {}; // re-build grouped by subject
+        questionsFromDb.forEach(q=>{
+          if(!QUESTIONS_DB[q.subject]) QUESTIONS_DB[q.subject]=[];
+          QUESTIONS_DB[q.subject].push(q);
+        });
+      }
+    } catch(e){ console.warn('Error preloading from Firestore', e); }
+  } else {
+    // fallback: generate dummy MCQs automatically for each subject if none exist
+    [...SCIENCE_SUBJECTS, ...SOCIAL_SUBJECTS].forEach(s=>{
+      if(!QUESTIONS_DB[s] || QUESTIONS_DB[s].length===0){
+        const qs = [];
+        for(let i=1;i<=40;i++){
+          qs.push({subject:s, stream:'Both', q:`(${s}) Q${i}: Which option is correct for question ${i}?`, options:[`A. option A`,`B. option B`,`C. option C`,`D. option D`], answer: Math.floor(Math.random()*4)});
+        }
+        QUESTIONS_DB[s] = qs;
+      }
+    });
+  }
+  populateStudentSelect();
+})();
+</script>
+</body>
+</html>
