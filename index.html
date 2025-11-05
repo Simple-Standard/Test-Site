@@ -53,16 +53,16 @@ nav button{background:transparent;border:1px solid var(--accent);padding:8px 12p
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0;
-  transition: opacity 1s ease-in-out;
+  transition: opacity 0.5s ease-in-out;
   animation: fadeSlide 25s infinite;
   z-index: 0;
 }
 @keyframes fadeSlide {
-  0%,20% { background-image: url("backimage1.png"); opacity:.7;}
-  20.1%,40% { background-image: url("backimage2.png"); opacity:.7;}
-  40.1%,60% { background-image: url("backimage3.png"); opacity:1;}
-  60.1%,80% { background-image: url("backimage4.png"); opacity:.7;}
-  80.1%,100% { background-image: url("backimage5.png"); opacity:.7;}
+  0%,20% { background-image: url("backimage1.png"); opacity:.6;}
+  20.1%,40% { background-image: url("backimage2.png"); opacity:.6;}
+  40.1%,60% { background-image: url("backimage3.png"); opacity:.6;}
+  60.1%,80% { background-image: url("backimage4.png"); opacity:.6;}
+  80.1%,100% { background-image: url("backimage5.png"); opacity:.6;}
 }
 #page1 *{ position: relative; z-index: 1; }
 
@@ -316,10 +316,10 @@ let STUDENTS = [
   'umar Bello Adam','Ummahani Bashir Muhmmad','Halima Ibrahim Birma','Yusuf Abdullahi Haruna','Abdullahi Alhassan Ismail','Auwal Ibrahim Abubakar',
   'Aisha Ahmad Khalid','Aisha Sani Ibrahim','Aisha Muazu Abubakar','Fadila Musa','Hauwau Kabir Yaro','Hauwau Musa Alhassan','Hafsat Yahya Shehu','Nasiba Khamis Adam',
   'Nuhu Shehu','Nazifi Ibrahim Shehu','Mercy Dandujit','Ummisalma Hassan','Usman Aliyu Musa','Zulaika Lawan','Uthman Abdulkadir','Ahmad Salihu','Ibrahim Aliyu'
-].map((name,i)=>({name, examNo:`SSS/2025/3/${001+i}`, stream: i < 23 ? 'Science' : 'Social'}));
+].map((name,i)=>({name, examNo:`SSS/2025/3/${001+i}`, stream: i <23 ? 'Science' : 'Social'}));
 
-const SCIENCE_SUBJECTS = ['English','Mathematics','Physics','Chemistry','Biology','Economics','Marketting','Agricultural Science','Hausa','Geography','Data Processing','Christain Religious Studies','Islamic Religious Study'];
-const SOCIAL_SUBJECTS  = ['English','Mathematics','Economics','Government','Hausa','Biology','Agricultural Science','Marketting','Christain Religious Science','IRS','Geography','Data Processing','Literature in English'];
+const SCIENCE_SUBJECTS = ['English','Mathematics','Physics','Chemistry','Biology','Economics','Marketting','Agricultural Science','Hausa','Geography','Data Processing','Christian Religious Studies','Islamic Studies'];
+const SOCIAL_SUBJECTS  = ['English','Mathematics','Economics','Government','Hausa','Biology','Agricultural Science','Marketting','Christian Religious Studies','Islamic Studies','Geography','Data Processing','Literature in English'];
 
 /* Local (in-memory) question DB used if Firebase not configured */
 let QUESTIONS_DB = {};
@@ -679,5 +679,6 @@ window.addEventListener('beforeunload', (e)=>{ if(sessionStorage.getItem('exam_i
 </script>
 </body>
 </html>
+
 
 
