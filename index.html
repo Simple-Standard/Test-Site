@@ -905,14 +905,17 @@ el('homeBtn').addEventListener('click', ()=> {
 });
 
 /* Admin: add student */
-el('addStudentBtn').addEventListener('click', async ()=>{
+el('addStudentBtn').addEventListener('click', async () => {
   const name = el('newStudentName').value.trim();
   const stream = el('newStudentStream').value;
 
-  if (!name || !examNo) return alert('Provide name and exam number');
-
-  // ✅ Auto-generate exam number
+  // ✅ Auto-generate exam number BEFORE validation
   const examNo = getNextExamNumber(stream);
+
+  if (!name || !examNo) {
+    alert('Provide name and exam number');
+    return;
+  }
 
   const newStudent = { name, examNo, stream };
 
@@ -942,7 +945,7 @@ el('addStudentBtn').addEventListener('click', async ()=>{
   populateStudentSelect();        // refresh exam student dropdown
 
   // ✅ Confirm success
-  alert('✅ Student added successfully!');
+  alert(`✅ Student "${name}" added successfully! Exam No: ${examNo}`);
 
   console.log('Updated STUDENTS:', STUDENTS);
 });
