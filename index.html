@@ -207,13 +207,23 @@ nav button{background:transparent;border:1px solid var(--accent);padding:8px 12p
   <section id="admin" class="card hidden">
     <h3>Admin Access</h3>
     <div style="max-width:800px;margin:0 auto;text-align:left">
-      <label class="small">Username</label>
-      <input id="adminUser" class="select" placeholder="username">
-      <label class="small" style="margin-top:8px">Password</label>
-      <input id="adminPass" type="password" class="select" placeholder="password">
-      <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
-        <button id="adminLogin" class="btn">Login</button>
-        <button id="adminBack" class="btn secondary">Back</button>
+    
+      <!-- Admin login form (will hide after login) -->
+      <div id="adminLoginSection">
+        <label class="small">Username</label>
+        <input id="adminUser" class="select" placeholder="username">
+        <label class="small" style="margin-top:8px">Password</label>
+        <input id="adminPass" type="password" class="select" placeholder="password">
+        <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end">
+          <button id="adminLogin" class="btn">Login</button>
+          <button id="adminBack" class="btn secondary">Back</button>
+        </div>
+      </div>
+    
+      <!-- Hidden Logout button (will appear after login) -->
+      <div id="adminLogoutSection" class="hidden" style="text-align:right;margin-top:10px;">
+        <button id="adminLogout" class="btn secondary" style="background:#ef4444;color:white">Logout</button>
+        <button id="adminBack2" class="btn secondary">Back</button>
       </div>
 
       <div id="adminPanel" class="hidden" style="margin-top:14px">
@@ -225,8 +235,9 @@ nav button{background:transparent;border:1px solid var(--accent);padding:8px 12p
           <h5>Add / Manage Students</h5>
           <div class="admin-form">
             <input id="newStudentName" placeholder="Student name">
-            <input id="newStudentExamNo" placeholder="Exam number">
+            <input id="newStudentExamNo" placeholder="Exam number" readonly> <!-- make read-only -->
             <select id="newStudentStream" class="select">
+              <option value="">-- Select Stream --</option>              
               <option value="Science">Science</option>
               <option value="Social">Social</option>
             </select>
@@ -260,6 +271,7 @@ nav button{background:transparent;border:1px solid var(--accent);padding:8px 12p
               <option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option>
             </select>
             <button id="addQuestionBtn" class="btn">Add Question</button>
+            <button id="editQuestionsBtn" class="btn secondary">Edit Questions</button>
           </div>
         </div>
 
@@ -280,6 +292,23 @@ nav button{background:transparent;border:1px solid var(--accent);padding:8px 12p
       </div>
     </div>
   </section>
+
+<!-- EDIT QUESTIONS PAGE -->
+<section id="editQuestionsPage" class="card hidden">
+  <h3>Edit Questions</h3>
+
+  <div style="max-width:800px;margin:0 auto;text-align:left">
+    <label class="small">Select Subject</label>
+    <select id="editSubjectSelect" class="select"></select>
+
+    <div id="questionListContainer" style="margin-top:20px;"></div>
+
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+      <button id="saveQuestionChanges" class="btn">Save Changes</button>
+      <button id="backFromEdit" class="btn secondary">Back</button>
+    </div>
+  </div>
+</section>
 
 <div id="examDetailsPage" class="hidden">
   <h2>Exam Details Settings</h2>
@@ -350,6 +379,43 @@ let STUDENTS = [
   stream: i < 23 ? 'Science' : 'Social'
 }));
 
+/* ====== Auto-generate exam numbers ====== */
+
+// Utility to get next exam number by stream
+function getNextExamNumber(stream) {
+  if (!stream) return '';
+
+  // Filter students by stream
+  const filtered = STUDENTS.filter(s => s.stream === stream);
+
+  // Extract numeric part of exam numbers, e.g., 1001 from "SS3/2025/1001"
+  const numbers = filtered
+    .map(s => parseInt(s.examNo.split('/').pop(), 10))
+    .filter(n => !isNaN(n));
+
+  // Find max number or start from base
+  const lastNum = numbers.length ? Math.max(...numbers) : (stream === 'Science' ? 1000 : 2000);
+
+  // Increment for next
+  const nextNum = lastNum + 1;
+
+  // Format with prefix
+  return `SS3/2025/${nextNum}`;
+}
+
+// Auto-fill exam number when stream is selected
+document.addEventListener('DOMContentLoaded', () => {
+  const streamSelect = document.getElementById('newStudentStream');
+  const examInput = document.getElementById('newStudentExamNo');
+
+  if (streamSelect && examInput) {
+    streamSelect.addEventListener('change', () => {
+      const stream = streamSelect.value;
+      examInput.value = getNextExamNumber(stream);
+    });
+  }
+});
+
 const SCIENCE_SUBJECTS = [
   'English Language',
   'Mathematics',
@@ -381,6 +447,20 @@ const SOCIAL_SUBJECTS = [
   'Literature in English',
   'Government'
 ];
+
+// ✅ Dynamically populate Add Question subjects from both arrays
+function populateAddQuestionSubjects() {
+  const subjectSel = document.getElementById('addQSubject');
+  if (!subjectSel) return;
+  subjectSel.innerHTML = ''; // clear any hardcoded list
+  const subjects = [...new Set([...SCIENCE_SUBJECTS, ...SOCIAL_SUBJECTS])];
+  subjects.sort().forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub;
+    opt.textContent = sub;
+    subjectSel.appendChild(opt);
+  });
+}
 
 /* Local (in-memory) question DB used if Firebase not configured */
 let QUESTIONS_DB = {};
@@ -466,13 +546,19 @@ QUESTIONS_DB["Hausa"] = [
 
 /* Utility */
 function el(id){ return document.getElementById(id); }
-function show(page) {
-  // hide ALL possible pages
-  [el('page1'), el('page2'), el('page3'), el('page4'), el('admin'), el('examDetailsPage')]
-    .forEach(p => p.classList.add('hidden'));
-  // then show the selected one
+function show(page){
+  [
+    el('page1'),
+    el('page2'),
+    el('page3'),
+    el('page4'),
+    el('admin'),
+    el('examDetailsPage'),
+    el('editQuestionsPage')
+  ].forEach(p => p?.classList.add('hidden'));
+  
   page.classList.remove('hidden');
-  window.scrollTo(0, 0);
+  window.scrollTo(0,0);
 }
 
 /* --------- Firestore helpers --------- */
@@ -543,12 +629,37 @@ async function fetchAllResults(){
 }
 
 /* --------- UI wiring & fallback data loading --------- */
-const page1 = el('page1'), page2 = el('page2'), page3 = el('page3'), page4 = el('page4'), adminPage = el('admin');
+const page1 = el('page1'), 
+      page2 = el('page2'), 
+      page3 = el('page3'), 
+      page4 = el('page4'), 
+      adminPage = el('admin'),
+      editQuestionsPage = el('editQuestionsPage'); // ✅ Add this here
 el('homeBtn').addEventListener('click', ()=> show(page1));
+// ✅ HOME BUTTON: Automatically logs out admin if logged in
+el('homeBtn').addEventListener('click', ()=> {
+  // If admin session exists, clear it
+  if (sessionStorage.getItem('is_admin_logged_in')) {
+    sessionStorage.removeItem('is_admin_logged_in');
+    el('adminPanel').classList.add('hidden');
+    console.log('Admin session cleared due to Home click.');
+  }
+  show(page1);
+});
+
+// ✅ ADMIN BUTTON: Show admin login or panel depending on session
 el('adminBtn').addEventListener('click', ()=>{
   if(sessionStorage.getItem('exam_in_progress')){
     if(!confirm('Admin area will abandon current exam. Continue?')) return;
     endExamSession();
+  }
+
+  // Check if admin is logged in
+  const isLoggedIn = sessionStorage.getItem('is_admin_logged_in') === 'true';
+  if(isLoggedIn){
+    el('adminPanel').classList.remove('hidden');
+  } else {
+    el('adminPanel').classList.add('hidden');
   }
   show(adminPage);
 });
@@ -703,27 +814,137 @@ async function submitExam(isAuto){
   }
 }
 
-/* ---- Admin logic ---- */
+/* ---- Admin logic (clean login/logout interface + auto logout on Home) ---- */
+
+// Handle login
 el('adminLogin').addEventListener('click', async ()=>{
-  const u = el('adminUser').value.trim(); const p = el('adminPass').value.trim();
-  if(u === ADMIN_CRED.user && p === ADMIN_CRED.pass){
-    el('adminPanel').classList.remove('hidden'); await populateAdmin();
-  } else alert('Invalid credentials');
+  const u = el('adminUser').value.trim();
+  const p = el('adminPass').value.trim();
+
+  if (u === ADMIN_CRED.user && p === ADMIN_CRED.pass) {
+    sessionStorage.setItem('is_admin_logged_in', 'true');
+    el('adminPanel').classList.remove('hidden');
+    el('adminLoginSection').classList.add('hidden');       // ✅ hide login area
+    el('adminLogoutSection').classList.remove('hidden');   // ✅ show logout buttons
+    await populateAdmin();
+    populateAddQuestionSubjects();
+    alert('✅ Admin login successful!');
+  } else {
+    alert('❌ Invalid credentials');
+  }
 });
-el('adminBack').addEventListener('click', ()=> show(page1));
+
+// Handle logout (when Logout button clicked)
+el('adminLogout').addEventListener('click', ()=>{
+  sessionStorage.removeItem('is_admin_logged_in');
+  el('adminPanel').classList.add('hidden');
+  el('adminLoginSection').classList.remove('hidden');     // ✅ show login again
+  el('adminLogoutSection').classList.add('hidden');       // ✅ hide logout buttons
+
+  // ✅ clear credentials from inputs
+  el('adminUser').value = '';
+  el('adminPass').value = '';
+
+  alert('✅ Logged out successfully.');
+  show(page1);
+});
+
+// Handle both Back buttons
+el('adminBack').addEventListener('click', ()=> {
+  sessionStorage.removeItem('is_admin_logged_in');
+  el('adminPanel').classList.add('hidden');
+  el('adminLoginSection').classList.remove('hidden');
+  el('adminLogoutSection').classList.add('hidden');
+  el('adminUser').value = '';
+  el('adminPass').value = '';
+  show(page1);
+});
+el('adminBack2').addEventListener('click', ()=> {
+  sessionStorage.removeItem('is_admin_logged_in');
+  el('adminPanel').classList.add('hidden');
+  el('adminLoginSection').classList.remove('hidden');
+  el('adminLogoutSection').classList.add('hidden');
+  el('adminUser').value = '';
+  el('adminPass').value = '';
+  show(page1);
+});
+
+// When Admin page is opened
+el('adminBtn').addEventListener('click', ()=>{
+  if(sessionStorage.getItem('exam_in_progress')){
+    if(!confirm('Admin area will abandon current exam. Continue?')) return;
+    endExamSession();
+  }
+
+  const isLoggedIn = sessionStorage.getItem('is_admin_logged_in') === 'true';
+  if(isLoggedIn){
+    el('adminPanel').classList.remove('hidden');
+    el('adminLoginSection').classList.add('hidden');
+    el('adminLogoutSection').classList.remove('hidden');
+  } else {
+    el('adminPanel').classList.add('hidden');
+    el('adminLoginSection').classList.remove('hidden');
+    el('adminLogoutSection').classList.add('hidden');
+  }
+  show(adminPage);
+});
+
+// ✅ HOME BUTTON: Automatically logs out admin if logged in
+el('homeBtn').addEventListener('click', ()=> {
+  // If admin session exists, clear it
+  if (sessionStorage.getItem('is_admin_logged_in')) {
+    sessionStorage.removeItem('is_admin_logged_in');
+    el('adminPanel').classList.add('hidden');
+    el('adminLoginSection').classList.remove('hidden');
+    el('adminLogoutSection').classList.add('hidden');
+    el('adminUser').value = '';
+    el('adminPass').value = '';
+    console.log('Admin session cleared due to Home click.');
+  }
+  show(page1);
+});
 
 /* Admin: add student */
 el('addStudentBtn').addEventListener('click', async ()=>{
-  const name = el('newStudentName').value.trim(); const examNo = el('newStudentExamNo').value.trim(); const stream = el('newStudentStream').value;
-  if(!name || !examNo) return alert('Provide name and exam number');
-  const s = { name, examNo, stream };
-  STUDENTS.push(s);
-  if(db){
-    try { await saveStudentToFirestore(s); } catch(e){ console.error(e); alert('Error saving student to Firestore'); }
+  const name = el('newStudentName').value.trim();
+  const stream = el('newStudentStream').value;
+
+  if (!name || !examNo) return alert('Provide name and exam number');
+
+  // ✅ Auto-generate exam number
+  const examNo = getNextExamNumber(stream);
+
+  const newStudent = { name, examNo, stream };
+
+  // ✅ Add to memory
+  STUDENTS.push(newStudent);
+
+  // ✅ Save to Firestore if enabled
+  if (db) {
+    try {
+      await saveStudentToFirestore(newStudent);
+    } catch (e) {
+      console.error(e);
+      alert('Error saving student to Firestore');
+    }
+  } else {
+    // Optional: persist locally too
+    localStorage.setItem('sss_students_v1', JSON.stringify(STUDENTS));
   }
-  el('newStudentName').value=''; el('newStudentExamNo').value='';
-  await populateAdmin(); populateStudentSelect();
-  alert('Student added');
+
+  // ✅ Clear inputs
+  el('newStudentName').value = '';
+  el('newStudentStream').value = '';
+  el('newStudentExamNo').value = '';
+
+  // ✅ Refresh both student dropdowns everywhere
+  await populateAdmin();          // refresh result-check dropdown
+  populateStudentSelect();        // refresh exam student dropdown
+
+  // ✅ Confirm success
+  alert('✅ Student added successfully!');
+
+  console.log('Updated STUDENTS:', STUDENTS);
 });
 
 /* Admin: add question */
@@ -1017,6 +1238,11 @@ el('backToAdmin').addEventListener('click', () => {
   show(el('admin'));
 });
 
+// Back button from Edit Questions page
+el('backFromEdit').addEventListener('click', () => {
+  show(el('admin'));
+});
+
 // Save button — saves settings to localStorage
 el('saveExamDetails').addEventListener('click', () => {
   const settings = {};
@@ -1072,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetBtn = document.getElementById('resetSubjectBtn');
   if (!resetBtn) return;
 
-  resetBtn.addEventListener('click', () => {
+  resetBtn.addEventListener('click', async () => {   // ✅ add "async" here
     const examNo = document.getElementById('adminStudentSelect').value;
     const subject = document.getElementById('resetSubjectSelect').value;
 
@@ -1082,28 +1308,119 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmReset = confirm(`⚠️ This will delete "${subject}" exam attempt for student ${examNo}. Continue?`);
     if (!confirmReset) return;
 
-    try {
-      let results = JSON.parse(localStorage.getItem('sss_results_v1') || '[]');
-      const beforeCount = results.length;
+    let results = [];
 
-      // Filter out the selected student's subject
-      results = results.filter(r => !(r.examNo === examNo && r.subject === subject));
-
-      const removed = beforeCount - results.length;
-      localStorage.setItem('sss_results_v1', JSON.stringify(results));
-
-      if (removed > 0) {
-        alert(`✅ Successfully cleared "${subject}" attempt for student ${examNo}.`);
-        renderResultsTable(); // Refresh table
-      } else {
-        alert(`⚠️ No "${subject}" exam record found for student ${examNo}.`);
+    if (db) {
+      try { 
+        results = await fetchAllResults();   // now valid
+      } catch (e) { 
+        console.warn("Error fetching from Firestore", e); 
       }
-    } catch (error) {
-      console.error(error);
-      alert('❌ Error during reset: ' + error.message);
+    } else {
+      results = JSON.parse(localStorage.getItem('sss_results_v1') || '[]');
+    }
+
+    const beforeCount = results.length;
+    results = results.filter(r => !(r.examNo === examNo && r.subject === subject));
+    const removed = beforeCount - results.length;
+    localStorage.setItem('sss_results_v1', JSON.stringify(results));
+
+    if (removed > 0) {
+      alert(`✅ Successfully cleared "${subject}" attempt for student ${examNo}.`);
+      renderResultsTable();
+    } else {
+      alert(`⚠️ No "${subject}" exam record found for student ${examNo}.`);
     }
   });
 });
+
+/* ========== EDIT QUESTIONS FEATURE ========== */
+const editSubjectSelect = el('editSubjectSelect');
+const questionListContainer = el('questionListContainer');
+
+el('editQuestionsBtn').addEventListener('click', async ()=>{
+  await loadSubjectsToEdit();
+  questionListContainer.innerHTML = '';
+  show(editQuestionsPage);
+});
+
+async function loadSubjectsToEdit() {
+  editSubjectSelect.innerHTML = '<option value="">-- Select Subject --</option>';
+  const subjects = Object.keys(QUESTIONS_DB || {});
+  subjects.forEach(subj => {
+    const opt = document.createElement('option');
+    opt.value = subj;
+    opt.textContent = subj;
+    editSubjectSelect.appendChild(opt);
+  });
+}
+
+editSubjectSelect.addEventListener('change', ()=>{
+  const subj = editSubjectSelect.value;
+  if(!subj) { questionListContainer.innerHTML = ''; return; }
+
+  const qs = QUESTIONS_DB[subj] || [];
+  if(!qs.length){
+    questionListContainer.innerHTML = '<p>No questions found for this subject.</p>';
+    return;
+  }
+
+  let html = '';
+  qs.forEach((q, i)=>{
+    html += `
+      <div class="card" style="margin-top:12px;padding:10px;">
+        <label>Question ${i+1}</label>
+        <textarea data-qindex="${i}" class="q-text" style="width:100%;height:60px;">${q.q}</textarea>
+        <label>Options:</label>
+        ${q.options.map((opt, j)=>`
+          <input data-qindex="${i}" data-oindex="${j}" class="q-option" style="width:100%;margin-bottom:5px;" value="${opt}">
+        `).join('')}
+        <label>Correct Answer</label>
+        <input data-qindex="${i}" class="q-answer" style="width:100%;" value="${q.answer}">
+      </div>
+    `;
+  });
+
+  questionListContainer.innerHTML = html;
+});
+
+el('saveQuestionChanges').addEventListener('click', async ()=>{
+  const subj = editSubjectSelect.value;
+  if(!subj) return alert('Select a subject first');
+
+  const qs = QUESTIONS_DB[subj] || [];
+  document.querySelectorAll('.q-text').forEach(t=>{
+    const i = +t.dataset.qindex;
+    if(qs[i]) qs[i].question = t.value.trim();
+  });
+  document.querySelectorAll('.q-option').forEach(o=>{
+    const i = +o.dataset.qindex, j = +o.dataset.oindex;
+    if(qs[i]) qs[i].options[j] = o.value.trim();
+  });
+  document.querySelectorAll('.q-answer').forEach(a=>{
+    const i = +a.dataset.qindex;
+    if(qs[i]) qs[i].answer = a.value.trim();
+  });
+
+  if(db){
+    try {
+      await saveQuestionsToFirestore(subj, qs);
+      alert('✅ Questions updated successfully.');
+    } catch(e){
+      console.error(e);
+      alert('Error updating questions.');
+    }
+  }
+
+  QUESTIONS_DB[subj] = qs;
+  await populateAdmin();
+});
+
+el('backFromEdit').addEventListener('click', ()=> show(adminPage));
+async function saveQuestionsToFirestore(subject, questions){
+  const ref = doc(db, 'exam_subjects', subject);
+  await setDoc(ref, { questions }, { merge:true });
+}
 
 </script>
 </body>
