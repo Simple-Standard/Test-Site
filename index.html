@@ -1169,10 +1169,13 @@ window.addEventListener('beforeunload', (e)=>{ if(sessionStorage.getItem('exam_i
       const studentsFromDb = await fetchAllStudentsFromFirestore();
 
       if (studentsFromDb && studentsFromDb.length) {
-        // 🔹 Merge Firestore + local predefined students (avoid duplicates)
+        // ✅ Merge Firestore + local
         const existing = new Map(STUDENTS.map(s => [s.examNo, s]));
         studentsFromDb.forEach(s => existing.set(s.examNo, s));
         STUDENTS = Array.from(existing.values());
+      } else {
+        // ✅ Firestore empty — use local students only
+        console.warn('⚠️ No students found in Firestore, using local list.');
       }
 
       const questionsFromDb = await fetchAllQuestionsFromFirestore();
@@ -1530,4 +1533,5 @@ async function saveQuestionsToFirestore(subject, questions) {
 </script>
 </body>
 </html>
+
 
